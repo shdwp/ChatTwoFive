@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Style;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using ImGuiNET;
@@ -32,6 +33,7 @@ internal sealed class ChatLog : IUiComponent {
     private readonly List<string> _inputBacklog = new();
     private int _inputBacklogIdx = -1;
     internal int LastTab { get; private set; }
+    internal int? SwitchToTab { get; set; }
     private InputChannel? _tempChannel;
     private TellTarget? _tellTarget;
     private readonly Stopwatch _lastResize = new();
@@ -530,7 +532,7 @@ internal sealed class ChatLog : IUiComponent {
 
         var buttonWidth = afterIcon.X - beforeIcon.X;
         var showNovice = this.Ui.Plugin.Config.ShowNoviceNetwork && this.Ui.Plugin.Functions.IsMentor();
-        var inputWidth = ImGui.GetContentRegionAvail().X - buttonWidth * (showNovice ? 2 : 1);
+        var inputWidth = ImGui.GetContentRegionAvail().X; //  - buttonWidth * (showNovice ? 2 : 1);
 
         var inputType = this._tempChannel?.ToChatType() ?? activeTab?.Channel?.ToChatType() ?? this.Ui.Plugin.Functions.Chat.Channel.channel.ToChatType();
         var isCommand = this.Chat.Trim().StartsWith('/');
@@ -588,6 +590,23 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         if (ImGui.IsItemActive()) {
+            if (ImGui.IsKeyDown(ImGuiKey.ModAlt)) {
+                var delta = ImGui.IsKeyPressed(ImGuiKey.LeftArrow) ? -1 : (ImGui.IsKeyPressed(ImGuiKey.RightArrow) ? +1 : 0);
+                if (delta != 0) {
+                    var newTab = currentTab + delta;
+
+                    var count = this.Ui.Plugin.Config.Tabs.Count;
+                    if (newTab < 0) {
+                        newTab = count - 1;
+                    } else if (newTab > count - 1) {
+                        newTab = 0;
+                    }
+
+                    SwitchToTab = newTab;
+                    PluginLog.Debug($"Current {currentTab}, Switching {newTab}");
+                }
+            }
+            
             this.HandleKeybinds(true);
         }
 
@@ -619,9 +638,11 @@ internal sealed class ChatLog : IUiComponent {
 
         ImGui.SameLine();
 
+        /*
         if (ImGuiUtil.IconButton(FontAwesomeIcon.Cog)) {
             this.Ui.SettingsVisible ^= true;
         }
+        */
 
         if (showNovice) {
             ImGui.SameLine();
@@ -662,11 +683,13 @@ internal sealed class ChatLog : IUiComponent {
                     goto Skip;
                 }
 
-
-                if (this._tempChannel != null) {
+                var channel = activeTab.Channel;
+                if (channel != null && activeTab.PartnerPayload != null) {
+                    trimmed = $"{channel?.Prefix()} {activeTab.PartnerPayload.PlayerName}@{activeTab.PartnerPayload.World.Name} {trimmed}";
+                } else if (this._tempChannel != null) {
                     trimmed = $"{this._tempChannel.Value.Prefix()} {trimmed}";
-                } else if (activeTab is { Channel: { } channel }) {
-                    trimmed = $"{channel.Prefix()} {trimmed}";
+                } else if (channel != null) {
+                    trimmed = $"{channel?.Prefix()} {trimmed}";
                 }
             }
 
@@ -861,10 +884,16 @@ internal sealed class ChatLog : IUiComponent {
     }
 
     private int DrawTabBar() {
-        var currentTab = -1;
+        var currentTabIndex = -1;
+
+        var currentTab = this.Ui.CurrentTab;
+
+        if (currentTab != null) {
+            ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(currentTab.ButtonColor, 1f));
+        }
 
         if (!ImGui.BeginTabBar("##chat2-tabs")) {
-            return currentTab;
+            return currentTabIndex;
         }
 
         for (var tabI = 0; tabI < this.Ui.Plugin.Config.Tabs.Count; tabI++) {
@@ -874,14 +903,38 @@ internal sealed class ChatLog : IUiComponent {
             }
 
             var unread = tabI == this.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
-            var draw = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}");
+
+            var opened = true;
+            var flags = ImGuiTabItemFlags.NoReorder;
+            if (this.SwitchToTab.HasValue && this.SwitchToTab == tabI) {
+                this.SwitchToTab = null;
+                flags |= ImGuiTabItemFlags.SetSelected;
+            }
+
+            var color = new Vector4(tab.ButtonColor, 1f);
+            ImGui.PushStyleColor(ImGuiCol.TabActive, color);
+            ImGui.PushStyleColor(ImGuiCol.TabHovered, color);
+            bool hasBeenDrawn;
+            if (false && !tab.IsProtected) {
+                hasBeenDrawn = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}");
+            } else {
+                hasBeenDrawn = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}", ref opened, flags);
+            }
+
+            ImGui.PopStyleColor(2);
+
             this.DrawTabContextMenu(tab, tabI);
 
-            if (!draw) {
+            if (opened == false && !tab.IsProtected) {
+                this.Ui.Plugin.Config.Tabs.RemoveAt(tabI);
+                tabI--;
+            }
+
+            if (!hasBeenDrawn) {
                 continue;
             }
 
-            currentTab = tabI;
+            currentTabIndex = tabI;
             var switchedTab = this.LastTab != tabI;
             this.LastTab = tabI;
             tab.Unread = 0;
@@ -893,7 +946,11 @@ internal sealed class ChatLog : IUiComponent {
 
         ImGui.EndTabBar();
 
-        return currentTab;
+        if (currentTab != null) {
+            ImGui.PopStyleColor();
+        }
+
+        return currentTabIndex;
     }
 
     private int DrawTabSidebar() {

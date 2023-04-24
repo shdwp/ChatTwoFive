@@ -31,6 +31,13 @@ internal sealed class PluginUi : IDisposable {
 
             return null;
         }
+
+        set {
+            var i = this.Plugin.Config.Tabs.IndexOf(value);
+            if (i > -1 && i < this.Plugin.Config.Tabs.Count) {
+                this._chatLog.SwitchToTab = i;
+            }
+        }
     }
 
     private List<IUiComponent> Components { get; }
@@ -151,7 +158,8 @@ internal sealed class PluginUi : IDisposable {
             try {
                 component.Draw();
             } catch (Exception ex) {
-                PluginLog.LogError(ex, "Error drawing component");
+                // PluginLog.LogError(ex, "Error drawing component");
+                throw;
             }
         }
 

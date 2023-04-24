@@ -1,3 +1,4 @@
+using System.Numerics;
 using ChatTwo.Code;
 using ChatTwo.Resources;
 
@@ -72,5 +73,26 @@ internal static class TabsUtil {
         ChatCodes = new Dictionary<ChatType, ChatSource> {
             [ChatType.NpcDialogue] = ChatSourceExt.All,
         },
+    };
+
+    internal static Tab TellPrototype => new() {
+        Channel = InputChannel.Tell,
+        DisplayTimestamp = false,
+        ButtonColor = new Vector3(0.435f, 0.294f, 0.373f),
+        ChatCodes = new Dictionary<ChatType, ChatSource> {
+            // Special
+            [ChatType.Debug] = ChatSourceExt.All,
+            [ChatType.Urgent] = ChatSourceExt.All,
+            [ChatType.Notice] = ChatSourceExt.All,
+            // Chat
+            [ChatType.StandardEmote] = ChatSourceExt.All,
+            [ChatType.CustomEmote] = ChatSourceExt.All,
+            // Announcements
+            [ChatType.System] = ChatSourceExt.All,
+            [ChatType.GatheringSystem] = ChatSourceExt.All,
+            [ChatType.Error] = ChatSourceExt.All,
+            [ChatType.Echo] = ChatSourceExt.All,
+            [ChatType.Alarm] = ChatSourceExt.All,
+        }
     };
 }

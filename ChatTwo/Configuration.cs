@@ -1,7 +1,9 @@
+using System.Numerics;
 using ChatTwo.Code;
 using ChatTwo.Resources;
 using ChatTwo.Ui;
 using Dalamud.Configuration;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Logging;
 using ImGuiNET;
 
@@ -168,9 +170,13 @@ internal class Tab {
     public UnreadMode UnreadMode = UnreadMode.Unseen;
     public bool DisplayTimestamp = true;
     public InputChannel? Channel;
+    public PlayerPayload? PartnerPayload;
+    public bool IsPartnerSpecific => this.PartnerPayload != null;
     public bool PopOut;
+    public bool IsProtected => !IsPartnerSpecific;
     public bool IndependentOpacity;
     public float Opacity = 100f;
+    public Vector3 ButtonColor;
 
     [NonSerialized]
     public uint Unread;
@@ -190,6 +196,15 @@ internal class Tab {
             return this.ExtraChatAll || this.ExtraChatChannels.Contains(message.ExtraChatChannel);
         }
 
+        if (this.IsPartnerSpecific) {
+            var name = message.Sender.Skip(1).FirstOrDefault();
+            var partnerPayload = name?.Link as PlayerPayload;
+
+            if (partnerPayload?.ToString() == this.PartnerPayload?.ToString()) {
+                return true;
+            }
+        }
+        
         return message.Code.Type.IsGm()
                || this.ChatCodes.TryGetValue(message.Code.Type, out var sources) && (message.Code.Source is 0 or (ChatSource) 1 || sources.HasFlag(message.Code.Source));
     }
@@ -229,6 +244,7 @@ internal class Tab {
             PopOut = this.PopOut,
             IndependentOpacity = this.IndependentOpacity,
             Opacity = this.Opacity,
+            ButtonColor =  this.ButtonColor,
         };
     }
 }
