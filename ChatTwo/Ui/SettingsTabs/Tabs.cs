@@ -1,3 +1,4 @@
+using System.Numerics;
 using ChatTwo.Code;
 using ChatTwo.Resources;
 using ChatTwo.Util;
@@ -40,6 +41,12 @@ internal sealed class Tabs : ISettingsTab {
             if (ImGui.Selectable(string.Format(Language.Options_Tabs_Preset, Language.Tabs_Presets_Event))) {
                 this.Mutable.Tabs.Add(TabsUtil.VanillaEvent);
             }
+            
+            if (ImGui.Selectable(string.Format(Language.Options_Tabs_Preset, "TestTell"))) {
+                var tab = TabsUtil.TellPrototype.Clone();
+                tab.Name = "Convo prototype";
+                this.Mutable.Tabs.Add(tab);
+            }
 
             ImGui.EndPopup();
         }
@@ -76,6 +83,8 @@ internal sealed class Tabs : ISettingsTab {
                 }
 
                 ImGui.InputText(Language.Options_Tabs_Name, ref tab.Name, 512, ImGuiInputTextFlags.EnterReturnsTrue);
+                ImGui.ColorEdit3("Color", ref tab.ButtonColor, ImGuiColorEditFlags.NoInputs);
+                
                 ImGui.Checkbox(Language.Options_Tabs_ShowTimestamps, ref tab.DisplayTimestamp);
                 ImGui.Checkbox(Language.Options_Tabs_PopOut, ref tab.PopOut);
                 if (tab.PopOut) {
@@ -100,7 +109,7 @@ internal sealed class Tabs : ISettingsTab {
 
                     ImGui.EndCombo();
                 }
-
+                
                 var input = tab.Channel?.ToChatType().Name() ?? Language.Options_Tabs_NoInputChannel;
                 if (ImGuiUtil.BeginComboVertical(Language.Options_Tabs_InputChannel, input)) {
                     if (ImGui.Selectable(Language.Options_Tabs_NoInputChannel, tab.Channel == null)) {

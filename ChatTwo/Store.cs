@@ -4,13 +4,16 @@ using System.Numerics;
 using ChatTwo.Code;
 using ChatTwo.Resources;
 using ChatTwo.Util;
+using Dalamud.Configuration;
 using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Logging;
 using ImGuiNET;
 using LiteDB;
 using Lumina.Excel.GeneratedSheets;
+using PartyFinderPayload = ChatTwo.Util.PartyFinderPayload;
 
 namespace ChatTwo;
 
@@ -292,13 +295,55 @@ internal class Store : IDisposable {
         }
 
         var currentMatches = currentTab?.Matches(message) ?? false;
+        
+        var partnerSpecificMessage = false;
+        var foundPartnerTab = false;
+        PlayerPayload? partnerPayload = null;
+        if (message.Code.Type == ChatType.TellOutgoing || message.Code.Type == ChatType.TellIncoming) {
+            var name = message.Sender.Skip(1).FirstOrDefault();
+            partnerPayload = name?.Link as PlayerPayload;
+            partnerSpecificMessage = true;
+        }
+        
 
-        foreach (var tab in this.Plugin.Config.Tabs) {
-            var unread = !(tab.UnreadMode == UnreadMode.Unseen && currentTab != tab && currentMatches);
-
-            if (tab.Matches(message)) {
-                tab.AddMessage(message, unread);
+        if (partnerSpecificMessage) {
+            foreach (var tab in this.Plugin.Config.Tabs) {
+                if (tab.IsPartnerSpecific && tab.Matches(message)) {
+                    tab.AddMessage(message, true);
+                    foundPartnerTab = true;
+                    break;
+                }
             }
+        }
+        
+        if (!partnerSpecificMessage || !foundPartnerTab) {
+            foreach (var tab in this.Plugin.Config.Tabs) {
+                var unread = !(tab.UnreadMode == UnreadMode.Unseen && currentTab != tab && currentMatches);
+
+                if (tab.Matches(message)) {
+                    if (tab.IsPartnerSpecific && tab == currentTab) {
+                        tab.AddMessage(message, unread);
+                    } else if (!tab.IsPartnerSpecific) {
+                        tab.AddMessage(message, unread);
+                    }
+                }
+            }
+        }
+
+        if (partnerSpecificMessage && !foundPartnerTab && message.Code.Type == ChatType.TellOutgoing) {
+            if (partnerPayload == null) {
+                PluginLog.Warning($"Failed to find PlayerPayload for the sender source: {message.SenderSource}!");
+                return;
+            }
+
+            var tab = TabsUtil.TellPrototype.Clone();
+            tab.Name = partnerPayload.PlayerName;
+            tab.PartnerPayload = partnerPayload;
+
+            tab.AddMessage(message, false);
+            this.Plugin.Config.Tabs.Add(tab);
+            
+            this.Plugin.Ui.CurrentTab = tab;
         }
     }
 
