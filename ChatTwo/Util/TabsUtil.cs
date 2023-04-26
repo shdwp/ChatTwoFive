@@ -84,9 +84,6 @@ internal static class TabsUtil {
             [ChatType.Debug] = ChatSourceExt.All,
             [ChatType.Urgent] = ChatSourceExt.All,
             [ChatType.Notice] = ChatSourceExt.All,
-            // Chat
-            [ChatType.StandardEmote] = ChatSourceExt.All,
-            [ChatType.CustomEmote] = ChatSourceExt.All,
             // Announcements
             [ChatType.System] = ChatSourceExt.All,
             [ChatType.GatheringSystem] = ChatSourceExt.All,

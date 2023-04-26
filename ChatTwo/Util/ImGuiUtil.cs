@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling;
@@ -222,6 +223,32 @@ internal static class ImGuiUtil {
         ImGui.TextUnformatted(label);
         ImGui.SetNextItemWidth(-1);
         return ImGui.DragFloat($"##{label}", ref value, vSpeed, vMin, vMax, format, flags);
+    }
+
+    public static unsafe bool BeginTabItem(string label, ImGuiTabItemFlags flags) {
+        int utf8ByteCount = 0;
+        byte* numPtr;
+        if (label != null) {
+            utf8ByteCount = Encoding.UTF8.GetByteCount(label);
+            if (utf8ByteCount <= 2048) {
+                var ptr = stackalloc byte[utf8ByteCount + 1];
+                numPtr = ptr;
+            } else {
+                numPtr = (byte*) (void*) Marshal.AllocHGlobal(utf8ByteCount + 1);
+            }
+
+            int utf8 = 0;
+            fixed (char* chars = label)
+                utf8 = Encoding.UTF8.GetBytes(chars, label.Length, numPtr, utf8ByteCount);
+
+            numPtr[utf8] = (byte) 0;
+        } else
+            numPtr = (byte*) null;
+
+        int num2 = (int) ImGuiNative.igBeginTabItem(numPtr, null, flags);
+        if (utf8ByteCount > 2048)
+            Marshal.FreeHGlobal((IntPtr) numPtr);
+        return (uint) num2 > 0U;
     }
 
     internal static bool TryToImGui(this VirtualKey key, out ImGuiKey result) {

@@ -120,6 +120,19 @@ internal sealed class PayloadHandler {
             ImGui.Separator();
         }
 
+        if (ImGui.Selectable($"Copy all")) {
+            if (chunk.Message is { } msg) {
+                var text = msg.Sender
+                    .Concat(msg.Content)
+                    .Where(chunk => chunk is TextChunk)
+                    .Cast<TextChunk>()
+                    .Select(text => text.Content)
+                    .Aggregate(string.Concat);
+                
+                ImGui.SetClipboardText(text);
+            }
+        }
+
         if (!ImGui.BeginMenu(this.Ui.Plugin.Name)) {
             return;
         }
