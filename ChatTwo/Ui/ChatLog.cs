@@ -265,10 +265,13 @@ internal sealed class ChatLog : IUiComponent {
 
     private static float GetRemainingHeightForMessageLog() {
         var lineHeight = ImGui.CalcTextSize("A").Y;
-        return ImGui.GetContentRegionAvail().Y
-               - lineHeight * 2
+        var value = ImGui.GetContentRegionAvail().Y
+               // - lineHeight * 2
+               - lineHeight
                - ImGui.GetStyle().ItemSpacing.Y
                - ImGui.GetStyle().FramePadding.Y * 2;
+        
+        return value;
     }
 
     private unsafe ImGuiViewport* _lastViewport;
@@ -444,6 +447,8 @@ internal sealed class ChatLog : IUiComponent {
             activeTab = this.Ui.Plugin.Config.Tabs[currentTab];
         }
 
+        var channelHint = "";
+        var channelSelector = false;
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         try {
             if (this._tellTarget != null) {
@@ -452,30 +457,55 @@ internal sealed class ChatLog : IUiComponent {
                     ?.Name
                     ?.RawString ?? "???";
 
-                this.DrawChunks(new Chunk[] {
-                    new TextChunk(ChunkSource.None, null, "Tell "),
-                    new TextChunk(ChunkSource.None, null, this._tellTarget.Name),
-                    new IconChunk(ChunkSource.None, null, BitmapFontIcon.CrossWorld),
-                    new TextChunk(ChunkSource.None, null, world),
-                });
+                channelHint = $"Tell " + this._tellTarget.Name;
+
+                if (channelSelector) {
+                    this.DrawChunks(new Chunk[] {
+                        new TextChunk(ChunkSource.None, null, "Tell "),
+                        new TextChunk(ChunkSource.None, null, this._tellTarget.Name),
+                        new IconChunk(ChunkSource.None, null, BitmapFontIcon.CrossWorld),
+                        new TextChunk(ChunkSource.None, null, world),
+                    });
+                }
             } else if (this._tempChannel != null) {
                 if (this._tempChannel.Value.IsLinkshell()) {
                     var idx = (uint) this._tempChannel.Value - (uint) InputChannel.Linkshell1;
                     var lsName = this.Ui.Plugin.Functions.Chat.GetLinkshellName(idx);
-                    ImGui.TextUnformatted($"LS #{idx + 1}: {lsName}");
+                    channelHint = $"LS #{{idx + 1}}: {lsName}";
+
+                    if (channelSelector) {
+                        ImGui.TextUnformatted(channelHint);
+                    }
                 } else if (this._tempChannel.Value.IsCrossLinkshell()) {
                     var idx = (uint) this._tempChannel.Value - (uint) InputChannel.CrossLinkshell1;
                     var cwlsName = this.Ui.Plugin.Functions.Chat.GetCrossLinkshellName(idx);
-                    ImGui.TextUnformatted($"CWLS [{idx + 1}]: {cwlsName}");
+                    channelHint = $"CWLS [{idx + 1}]: {cwlsName}";
+
+                    if (channelSelector) {
+                        ImGui.TextUnformatted(channelHint);
+                    }
                 } else {
-                    ImGui.TextUnformatted(this._tempChannel.Value.ToChatType().Name());
+                    channelHint = this._tempChannel.Value.ToChatType().Name();
+                    if (channelSelector) {
+                        ImGui.TextUnformatted(channelHint);
+                    }
                 }
             } else if (activeTab is { Channel: { } channel }) {
-                ImGui.TextUnformatted(channel.ToChatType().Name());
+                channelHint = channel.ToChatType().Name();
+                if (channelSelector) {
+                    ImGui.TextUnformatted(channelHint);
+                }
             } else if (this.Ui.Plugin.ExtraChat.ChannelOverride is var (overrideName, _)) {
-                ImGui.TextUnformatted(overrideName);
+                channelHint = overrideName;
+                if (channelSelector) {
+                    ImGui.TextUnformatted(channelHint);
+                }
             } else {
-                this.DrawChunks(this.Ui.Plugin.Functions.Chat.Channel.name);
+                channelHint = this.Ui.Plugin.Functions.Chat.Channel.name.Aggregate("", (a, c) => $"{a}{c.StringValue()} ");
+
+                if (channelSelector) {
+                    this.DrawChunks(this.Ui.Plugin.Functions.Chat.Channel.name);
+                }
             }
         } finally {
             ImGui.PopStyleVar();
@@ -483,8 +513,12 @@ internal sealed class ChatLog : IUiComponent {
 
         var beforeIcon = ImGui.GetCursorPos();
 
-        if (ImGuiUtil.IconButton(FontAwesomeIcon.Comment) && activeTab is not { Channel: { } }) {
-            ImGui.OpenPopup(ChatChannelPicker);
+        if (!this.Ui.Plugin.Config.HideChannelsButton) {
+            if (ImGuiUtil.IconButton(FontAwesomeIcon.Comment) && activeTab is not { Channel: { } }) {
+                ImGui.OpenPopup(ChatChannelPicker);
+            }
+        } else {
+            ImGui.NewLine();
         }
 
         if (activeTab is { Channel: { } } && ImGui.IsItemHovered()) {
@@ -530,9 +564,9 @@ internal sealed class ChatLog : IUiComponent {
         ImGui.SameLine();
         var afterIcon = ImGui.GetCursorPos();
 
-        var buttonWidth = afterIcon.X - beforeIcon.X;
+        var buttonWidth = this.Ui.Plugin.Config.HideCogButton ? 0 : (afterIcon.X - beforeIcon.X);
         var showNovice = this.Ui.Plugin.Config.ShowNoviceNetwork && this.Ui.Plugin.Functions.IsMentor();
-        var inputWidth = ImGui.GetContentRegionAvail().X; //  - buttonWidth * (showNovice ? 2 : 1);
+        var inputWidth = ImGui.GetContentRegionAvail().X - buttonWidth * (showNovice ? 2 : 1);
 
         var inputType = this._tempChannel?.ToChatType() ?? activeTab?.Channel?.ToChatType() ?? this.Ui.Plugin.Functions.Chat.Channel.channel.ToChatType();
         var isCommand = this.Chat.Trim().StartsWith('/');
@@ -575,7 +609,8 @@ internal sealed class ChatLog : IUiComponent {
                                                | ImGuiInputTextFlags.CallbackCharFilter
                                                | ImGuiInputTextFlags.CallbackCompletion
                                                | ImGuiInputTextFlags.CallbackHistory;
-        ImGui.InputText("##chat2-input", ref this.Chat, 500, inputFlags, this.Callback);
+        // ImGui.InputText("##chat2-input", ref this.Chat, 500, inputFlags, this.Callback);
+        ImGui.InputTextWithHint("##chat2-input", channelHint ?? "", ref this.Chat, 500, inputFlags, this.Callback);
 
         if (ImGui.IsItemDeactivated()) {
             if (ImGui.IsKeyDown(ImGuiKey.Escape)) {
@@ -606,7 +641,7 @@ internal sealed class ChatLog : IUiComponent {
                     PluginLog.Debug($"Current {currentTab}, Switching {newTab}");
                 }
             }
-            
+
             this.HandleKeybinds(true);
         }
 
@@ -638,11 +673,9 @@ internal sealed class ChatLog : IUiComponent {
 
         ImGui.SameLine();
 
-        /*
-        if (ImGuiUtil.IconButton(FontAwesomeIcon.Cog)) {
+        if (!this.Ui.Plugin.Config.HideCogButton && ImGuiUtil.IconButton(FontAwesomeIcon.Cog)) {
             this.Ui.SettingsVisible ^= true;
         }
-        */
 
         if (showNovice) {
             ImGui.SameLine();
@@ -817,7 +850,8 @@ internal sealed class ChatLog : IUiComponent {
                     }
 
                     if (tab.DisplayTimestamp) {
-                        var timestamp = message.Date.ToLocalTime().ToString("t");
+                        var format = this.Ui.Plugin.Config.Force24H ? "HH:mm" : "t";
+                        var timestamp = message.Date.ToLocalTime().ToString(format);
                         if (table) {
                             if (!this.Ui.Plugin.Config.HideSameTimestamps || timestamp != lastTimestamp) {
                                 ImGui.TextUnformatted(timestamp);
@@ -908,6 +942,7 @@ internal sealed class ChatLog : IUiComponent {
             var flags = ImGuiTabItemFlags.NoReorder;
             if (this.SwitchToTab.HasValue && this.SwitchToTab == tabI) {
                 this.SwitchToTab = null;
+                PluginLog.Debug($"SwitchToTab fire: {tabI}");
                 flags |= ImGuiTabItemFlags.SetSelected;
             }
 
@@ -915,8 +950,8 @@ internal sealed class ChatLog : IUiComponent {
             ImGui.PushStyleColor(ImGuiCol.TabActive, color);
             ImGui.PushStyleColor(ImGuiCol.TabHovered, color);
             bool hasBeenDrawn;
-            if (false && !tab.IsProtected) {
-                hasBeenDrawn = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}");
+            if (tab.IsProtected) {
+                hasBeenDrawn = ImGuiUtil.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}", flags);
             } else {
                 hasBeenDrawn = ImGui.BeginTabItem($"{tab.Name}{unread}###log-tab-{tabI}", ref opened, flags);
             }
@@ -928,6 +963,7 @@ internal sealed class ChatLog : IUiComponent {
             if (opened == false && !tab.IsProtected) {
                 this.Ui.Plugin.Config.Tabs.RemoveAt(tabI);
                 tabI--;
+                break;
             }
 
             if (!hasBeenDrawn) {

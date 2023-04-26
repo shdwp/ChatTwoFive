@@ -30,6 +30,9 @@ internal class Configuration : IPluginConfiguration {
     public KeybindMode KeybindMode = KeybindMode.Strict;
     public LanguageOverride LanguageOverride = LanguageOverride.None;
     public bool CanMove = true;
+    public bool Force24H = false;
+    public bool HideCogButton = false;
+    public bool HideChannelsButton = false;
     public bool CanResize = true;
     public bool ShowTitleBar;
     public bool ShowPopOutTitleBar = true;
@@ -69,6 +72,9 @@ internal class Configuration : IPluginConfiguration {
         this.KeybindMode = other.KeybindMode;
         this.LanguageOverride = other.LanguageOverride;
         this.CanMove = other.CanMove;
+        this.Force24H = other.Force24H;
+        this.HideChannelsButton = other.HideChannelsButton;
+        this.HideCogButton = other.HideCogButton;
         this.CanResize = other.CanResize;
         this.ShowTitleBar = other.ShowTitleBar;
         this.ShowPopOutTitleBar = other.ShowPopOutTitleBar;
@@ -192,10 +198,6 @@ internal class Tab {
     }
 
     internal bool Matches(Message message) {
-        if (message.ExtraChatChannel != Guid.Empty) {
-            return this.ExtraChatAll || this.ExtraChatChannels.Contains(message.ExtraChatChannel);
-        }
-
         if (this.IsPartnerSpecific) {
             var name = message.Sender.Skip(1).FirstOrDefault();
             var partnerPayload = name?.Link as PlayerPayload;
@@ -203,6 +205,14 @@ internal class Tab {
             if (partnerPayload?.ToString() == this.PartnerPayload?.ToString()) {
                 return true;
             }
+            
+            if (partnerPayload != null) {
+                return false;
+            }
+        }
+        
+        if (message.ExtraChatChannel != Guid.Empty) {
+            return this.ExtraChatAll || this.ExtraChatChannels.Contains(message.ExtraChatChannel);
         }
         
         return message.Code.Type.IsGm()
@@ -235,6 +245,7 @@ internal class Tab {
             ChatCodes = this.ChatCodes.ToDictionary(entry => entry.Key, entry => entry.Value),
             ExtraChatAll = this.ExtraChatAll,
             ExtraChatChannels = this.ExtraChatChannels.ToHashSet(),
+            PartnerPayload = this.PartnerPayload,
             #pragma warning disable CS0618
             DisplayUnread = this.DisplayUnread,
             #pragma warning restore CS0618

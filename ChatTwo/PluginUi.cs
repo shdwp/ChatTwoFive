@@ -35,6 +35,7 @@ internal sealed class PluginUi : IDisposable {
         set {
             var i = this.Plugin.Config.Tabs.IndexOf(value);
             if (i > -1 && i < this.Plugin.Config.Tabs.Count) {
+                PluginLog.Debug($"Switch to tab armed: {i}");
                 this._chatLog.SwitchToTab = i;
             }
         }

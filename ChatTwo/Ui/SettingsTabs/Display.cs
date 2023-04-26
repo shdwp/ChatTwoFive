@@ -62,7 +62,19 @@ internal sealed class Display : ISettingsTab {
             ImGuiUtil.OptionCheckbox(ref this.Mutable.HideSameTimestamps, Language.Options_HideSameTimestamps_Name, Language.Options_HideSameTimestamps_Description);
             ImGui.TreePop();
         }
+        
+        ImGui.Spacing();
 
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.Force24H, "Force 24H");
+        
+        ImGui.Spacing();
+
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.HideCogButton, "Hide Cog button");
+        
+        ImGui.Spacing();
+
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.HideChannelsButton, "Hide channels button");
+        
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.CollapseDuplicateMessages, Language.Options_CollapseDuplicateMessages_Name, Language.Options_CollapseDuplicateMessages_Description);
