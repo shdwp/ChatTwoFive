@@ -37,6 +37,7 @@ internal sealed class ChatLog : IUiComponent {
     private InputChannel? _tempChannel;
     private TellTarget? _tellTarget;
     private readonly Stopwatch _lastResize = new();
+    private string? _currentCommandText;
     private CommandHelp? _commandHelp;
     private AutoCompleteInfo? _autoCompleteInfo;
     private bool _autoCompleteOpen;
@@ -101,7 +102,7 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         var (info, reason, target) = (args.ChannelSwitchInfo, args.TellReason, args.TellTarget);
-        
+
         if (info.Channel != null) {
             var prevTemp = this._tempChannel;
 
@@ -266,11 +267,11 @@ internal sealed class ChatLog : IUiComponent {
     private static float GetRemainingHeightForMessageLog() {
         var lineHeight = ImGui.CalcTextSize("A").Y;
         var value = ImGui.GetContentRegionAvail().Y
-               // - lineHeight * 2
-               - lineHeight
-               - ImGui.GetStyle().ItemSpacing.Y
-               - ImGui.GetStyle().FramePadding.Y * 2;
-        
+                    // - lineHeight * 2
+                    - lineHeight
+                    - ImGui.GetStyle().ItemSpacing.Y
+                    - ImGui.GetStyle().FramePadding.Y * 2;
+
         return value;
     }
 
@@ -513,7 +514,7 @@ internal sealed class ChatLog : IUiComponent {
 
         var beforeIcon = ImGui.GetCursorPos();
 
-        if (!this.Ui.Plugin.Config.HideChannelsButton) {
+        if (!this.Ui.Plugin.Config.SimplifiedInputField) {
             if (ImGuiUtil.IconButton(FontAwesomeIcon.Comment) && activeTab is not { Channel: { } }) {
                 ImGui.OpenPopup(ChatChannelPicker);
             }
@@ -564,7 +565,7 @@ internal sealed class ChatLog : IUiComponent {
         ImGui.SameLine();
         var afterIcon = ImGui.GetCursorPos();
 
-        var buttonWidth = this.Ui.Plugin.Config.HideCogButton ? 0 : (afterIcon.X - beforeIcon.X);
+        var buttonWidth = this.Ui.Plugin.Config.SimplifiedInputField ? 0 : (afterIcon.X - beforeIcon.X);
         var showNovice = this.Ui.Plugin.Config.ShowNoviceNetwork && this.Ui.Plugin.Functions.IsMentor();
         var inputWidth = ImGui.GetContentRegionAvail().X - buttonWidth * (showNovice ? 2 : 1);
 
@@ -673,7 +674,7 @@ internal sealed class ChatLog : IUiComponent {
 
         ImGui.SameLine();
 
-        if (!this.Ui.Plugin.Config.HideCogButton && ImGuiUtil.IconButton(FontAwesomeIcon.Cog)) {
+        if (!this.Ui.Plugin.Config.SimplifiedInputField && ImGuiUtil.IconButton(FontAwesomeIcon.Cog)) {
             this.Ui.SettingsVisible ^= true;
         }
 
@@ -850,7 +851,7 @@ internal sealed class ChatLog : IUiComponent {
                     }
 
                     if (tab.DisplayTimestamp) {
-                        var format = this.Ui.Plugin.Config.Force24H ? "HH:mm" : "t";
+                        var format = this.Ui.Plugin.Config.TimestampsForce24Format ? "HH:mm" : "t";
                         var timestamp = message.Date.ToLocalTime().ToString(format);
                         if (table) {
                             if (!this.Ui.Plugin.Config.HideSameTimestamps || timestamp != lastTimestamp) {
@@ -1341,6 +1342,19 @@ internal sealed class ChatLog : IUiComponent {
             if (!valid) {
                 return 1;
             }
+
+            if (this._currentCommandText != null) {
+                ushort? subChar = null;
+                var layoutSubMap = this.Ui.Plugin.Config.KeyLayoutSubMap;
+                var charPos = layoutSubMap.IndexOf((char) ptr.EventChar);
+                if (charPos >= 0 && charPos < layoutSubMap.Length / 2) {
+                    subChar = layoutSubMap[charPos + layoutSubMap.Length / 2];
+                }
+
+                if (!this.Ui.Plugin.Config.KeyLayoutSubDisabledCommands.Contains(this._currentCommandText)) {
+                    data->EventChar = subChar ?? ptr.EventChar;
+                }
+            }
         }
 
         if (this.Activate) {
@@ -1354,14 +1368,19 @@ internal sealed class ChatLog : IUiComponent {
         var text = MemoryHelper.ReadString((IntPtr) data->Buf, data->BufTextLen);
         if (text.StartsWith('/')) {
             var command = text.Split(' ')[0];
+            this._currentCommandText = command;
             var cmd = this.Ui.Plugin.DataManager.GetExcelSheet<TextCommand>()?.FirstOrDefault(cmd => cmd.Command.RawString == command
                                                                                                      || cmd.Alias.RawString == command
                                                                                                      || cmd.ShortCommand.RawString == command
                                                                                                      || cmd.ShortAlias.RawString == command);
+
             if (cmd != null) {
                 this._commandHelp = new CommandHelp(this, cmd);
+
                 goto PostCommandHelp;
             }
+        } else {
+            this._currentCommandText = null;
         }
 
         this._commandHelp = null;

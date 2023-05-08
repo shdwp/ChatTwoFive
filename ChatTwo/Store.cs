@@ -307,7 +307,7 @@ internal class Store : IDisposable {
             partnerSpecificMessage = true;
         }
 
-        if (!this.Plugin.Config.TellTabs) {
+        if (!this.Plugin.Config.EnableTellTabs) {
             partnerSpecificMessage = false;
         }
 

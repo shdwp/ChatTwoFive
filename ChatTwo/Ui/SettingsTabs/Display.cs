@@ -60,21 +60,13 @@ internal sealed class Display : ISettingsTab {
             ImGui.TreePush();
             ImGuiUtil.OptionCheckbox(ref this.Mutable.MoreCompactPretty, Language.Options_MoreCompactPretty_Name, Language.Options_MoreCompactPretty_Description);
             ImGuiUtil.OptionCheckbox(ref this.Mutable.HideSameTimestamps, Language.Options_HideSameTimestamps_Name, Language.Options_HideSameTimestamps_Description);
+            ImGuiUtil.OptionCheckbox(ref this.Mutable.TimestampsForce24Format, "Force 24 hour format");
             ImGui.TreePop();
         }
-        
+
         ImGui.Spacing();
 
-        ImGuiUtil.OptionCheckbox(ref this.Mutable.Force24H, "Force 24H");
-        ImGui.Spacing();
-
-        ImGuiUtil.OptionCheckbox(ref this.Mutable.HideCogButton, "Hide Cog button");
-        ImGui.Spacing();
-
-        ImGuiUtil.OptionCheckbox(ref this.Mutable.HideChannelsButton, "Hide channels button");
-        ImGui.Spacing();
-
-        ImGuiUtil.OptionCheckbox(ref this.Mutable.TellTabs, "Open conversation tabs on /tell");
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.SimplifiedInputField, "Simplified input field");
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.CollapseDuplicateMessages, Language.Options_CollapseDuplicateMessages_Name, Language.Options_CollapseDuplicateMessages_Description);
