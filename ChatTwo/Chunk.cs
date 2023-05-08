@@ -4,7 +4,7 @@ using LiteDB;
 
 namespace ChatTwo;
 
-internal abstract class Chunk {
+public abstract class Chunk {
     [BsonIgnore]
     internal Message? Message { get; set; }
 
@@ -38,20 +38,20 @@ internal abstract class Chunk {
     }
 }
 
-internal enum ChunkSource {
+public enum ChunkSource {
     None,
     Sender,
     Content,
 }
 
-internal class TextChunk : Chunk {
-    internal ChatType? FallbackColour { get; set; }
-    internal uint? Foreground { get; set; }
-    internal uint? Glow { get; set; }
-    internal bool Italic { get; set; }
-    internal string Content { get; set; }
+public class TextChunk : Chunk {
+    public ChatType? FallbackColour { get; set; }
+    public uint? Foreground { get; set; }
+    public uint? Glow { get; set; }
+    public bool Italic { get; set; }
+    public string Content { get; set; }
 
-    internal TextChunk(ChunkSource source, Payload? link, string content) : base(source, link) {
+    public TextChunk(ChunkSource source, Payload? link, string content) : base(source, link) {
         this.Content = content;
     }
 

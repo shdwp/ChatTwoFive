@@ -54,6 +54,12 @@ internal class Configuration : IPluginConfiguration {
     public bool KeyLayoutSubEnabled = true;
     public List<string> KeyLayoutSubDisabledCommands = new();
 
+    public bool RPFormattingEnabled = false;
+    public List<ChatType> RPFormattingEnabledTypes = new();
+    public RPBlockSettings RPPhraseSettings;
+    public RPBlockSettings RPEmoteSettings;
+    public RPBlockSettings RPOOCSettings;
+
     public string KeyLayoutSubMap = ""
                                     + "йцукенгшщз-фівапролджєячсмитьбю.хqwfpbjluy;\\arstgmneio'zxcdvkh,./-";
 
@@ -108,6 +114,11 @@ internal class Configuration : IPluginConfiguration {
             "/r",
             "/em",
         };
+        this.RPFormattingEnabled = other.RPFormattingEnabled;
+        this.RPFormattingEnabledTypes = new List<ChatType>(other.RPFormattingEnabledTypes);
+        this.RPPhraseSettings = other.RPPhraseSettings.Clone();
+        this.RPEmoteSettings = other.RPEmoteSettings.Clone();
+        this.RPOOCSettings = other.RPOOCSettings.Clone();
     }
 
     public void Migrate() {
@@ -174,6 +185,25 @@ internal static class UnreadModeExt {
         UnreadMode.None => Language.UnreadMode_None_Tooltip,
         _ => null,
     };
+}
+
+[Serializable]
+internal class RPBlockSettings {
+    public bool PreserveStyle;
+    public Vector3 Color;
+    public Vector3 Glow;
+    public bool Wrap;
+    public bool Italic;
+    
+    public RPBlockSettings Clone() {
+        var result = new RPBlockSettings();
+        result.PreserveStyle = this.PreserveStyle;
+        result.Color = this.Color;
+        result.Glow = this.Glow;
+        result.Wrap = this.Wrap;
+        result.Italic = this.Italic;
+        return result;
+    }
 }
 
 [Serializable]

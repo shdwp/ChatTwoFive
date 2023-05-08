@@ -68,5 +68,11 @@ internal sealed class Miscellaneous : ISettingsTab {
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.KeyLayoutSubEnabled, "Enable commands keyboard layout auto sub.");
         ImGui.Spacing();
+
+        if (this.Mutable.KeyLayoutSubEnabled) {
+            ImGui.TreePush();
+            ImGui.InputText("", ref this.Mutable.KeyLayoutSubMap, 200);
+            ImGui.TreePop();
+        }
     }
 }

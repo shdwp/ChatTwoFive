@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
+using ChatTwo.Code;
 using ChatTwo.Ipc;
 using ChatTwo.Resources;
 using ChatTwo.Util;
@@ -12,6 +14,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.Style;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using XivCommon;
@@ -67,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin {
     internal GameFunctions.GameFunctions Functions { get; }
     internal Store Store { get; }
     internal IpcManager Ipc { get; }
+    internal RPMarkup RpMarkup { get; }
     internal ExtraChat ExtraChat { get; }
     internal PluginUi Ui { get; }
 
@@ -85,6 +89,34 @@ public sealed class Plugin : IDalamudPlugin {
             this.Config.Tabs.Add(TabsUtil.VanillaGeneral);
         }
 
+        if (this.Config.RPFormattingEnabledTypes.Count == 0) {
+            this.Config.RPFormattingEnabledTypes.Add(ChatType.Say);
+            this.Config.RPFormattingEnabledTypes.Add(ChatType.Party);
+            this.Config.RPFormattingEnabledTypes.Add(ChatType.TellIncoming);
+            this.Config.RPFormattingEnabledTypes.Add(ChatType.TellOutgoing);
+        }
+
+        if (this.Config.RPPhraseSettings == null) {
+            var settings = new RPBlockSettings();
+            settings.PreserveStyle = true;
+            this.Config.RPPhraseSettings = settings;
+        }
+        
+        if (this.Config.RPEmoteSettings == null) {
+            var settings = new RPBlockSettings();
+            settings.Wrap = true;
+            settings.Italic = true;
+            settings.Color = ColourUtil.RgbaToVector3(0xF19212FF);
+            this.Config.RPEmoteSettings = settings;
+        }
+        
+        if (this.Config.RPOOCSettings == null) {
+            var settings = new RPBlockSettings();
+            settings.Wrap = true;
+            settings.Color = ColourUtil.RgbaToVector3(0xD94D1DFF);
+            this.Config.RPOOCSettings = settings;
+        }
+
         this.LanguageChanged(this.Interface.UiLanguage);
 
         this.Commands = new Commands(this);
@@ -93,6 +125,7 @@ public sealed class Plugin : IDalamudPlugin {
         this.Functions = new GameFunctions.GameFunctions(this);
         this.Store = new Store(this);
         this.Ipc = new IpcManager(this.Interface);
+        this.RpMarkup = new RPMarkup(this);
         this.ExtraChat = new ExtraChat(this);
         this.Ui = new PluginUi(this);
 
