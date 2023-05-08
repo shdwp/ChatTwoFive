@@ -1,9 +1,0 @@
-name: Chat 2.5
-author: ascclemens, shdwp
-punchline: Chat2 + фiкси для укра-ком'юнiтi від Пилипа Орлика.
-description: |-
-  Замiна стандартного чату.
-  Додатковi фiкси для пiтримки мови вiд Пилипа Орлика.
-repo_url: https://github.com/shdwp/ChatTwoFive
-accepts_feedback: false
-feedback_message: Sorry, not at this time.

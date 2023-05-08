@@ -1,0 +1,8 @@
+name: Chat 2.5
+author: ascclemens, shdwp
+punchline: Fork of the Chat2 adding features and fixes.
+description: |-
+  Replacement of the standard chat. Fork of Chat 2.
+repo_url: https://github.com/shdwp/ChatTwoFive
+accepts_feedback: false
+feedback_message: Sorry, not at this time.
