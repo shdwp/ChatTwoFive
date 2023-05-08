@@ -22,18 +22,17 @@ internal class Configuration : IPluginConfiguration {
     public bool HideWhenUiHidden = true;
     public bool NativeItemTooltips = true;
     public bool PrettierTimestamps = true;
-    public bool MoreCompactPretty;
-    public bool HideSameTimestamps;
+    public bool MoreCompactPretty = true;
+    public bool HideSameTimestamps = true;
+    public bool TimestampsForce24Format = true;
     public bool ShowNoviceNetwork;
     public bool SidebarTabView;
     public CommandHelpSide CommandHelpSide = CommandHelpSide.None;
     public KeybindMode KeybindMode = KeybindMode.Strict;
     public LanguageOverride LanguageOverride = LanguageOverride.None;
     public bool CanMove = true;
-    public bool Force24H = true;
-    public bool HideCogButton = true;
-    public bool HideChannelsButton = false;
-    public bool TellTabs = true;
+    public bool SimplifiedInputField = true;
+    public bool EnableTellTabs = true;
     public bool CanResize = true;
     public bool ShowTitleBar;
     public bool ShowPopOutTitleBar = true;
@@ -51,6 +50,12 @@ internal class Configuration : IPluginConfiguration {
     public float SymbolsFontSize = 17f;
     public string GlobalFont = Fonts.GlobalFonts[3].Name;
     public string JapaneseFont = Fonts.JapaneseFonts[0].Item1;
+
+    public bool KeyLayoutSubEnabled = true;
+    public List<string> KeyLayoutSubDisabledCommands = new();
+
+    public string KeyLayoutSubMap = ""
+                                    + "йцукенгшщз-фівапролджєячсмитьбю.хqwfpbjluy;\\arstgmneio'zxcdvkh,./-";
 
     public float WindowAlpha = 100f;
     public Dictionary<ChatType, uint> ChatColours = new();
@@ -73,10 +78,9 @@ internal class Configuration : IPluginConfiguration {
         this.KeybindMode = other.KeybindMode;
         this.LanguageOverride = other.LanguageOverride;
         this.CanMove = other.CanMove;
-        this.Force24H = other.Force24H;
-        this.HideChannelsButton = other.HideChannelsButton;
-        this.TellTabs = other.TellTabs;
-        this.HideCogButton = other.HideCogButton;
+        this.TimestampsForce24Format = other.TimestampsForce24Format;
+        this.EnableTellTabs = other.EnableTellTabs;
+        this.SimplifiedInputField = other.SimplifiedInputField;
         this.CanResize = other.CanResize;
         this.ShowTitleBar = other.ShowTitleBar;
         this.ShowPopOutTitleBar = other.ShowPopOutTitleBar;
@@ -95,8 +99,15 @@ internal class Configuration : IPluginConfiguration {
         this.JapaneseFont = other.JapaneseFont;
         this.WindowAlpha = other.WindowAlpha;
         this.ChatColours = other.ChatColours.ToDictionary(entry => entry.Key, entry => entry.Value);
+        this.KeyLayoutSubMap = other.KeyLayoutSubMap;
         this.Tabs = other.Tabs.Select(t => t.Clone()).ToList();
         this.DatabaseMigration = other.DatabaseMigration;
+        this.KeyLayoutSubEnabled = other.KeyLayoutSubEnabled;
+        this.KeyLayoutSubDisabledCommands = new List<string> {
+            "/tell",
+            "/r",
+            "/em",
+        };
     }
 
     public void Migrate() {
@@ -207,16 +218,16 @@ internal class Tab {
             if (partnerPayload?.ToString() == this.PartnerPayload?.ToString()) {
                 return true;
             }
-            
+
             if (partnerPayload != null) {
                 return false;
             }
         }
-        
+
         if (message.ExtraChatChannel != Guid.Empty) {
             return this.ExtraChatAll || this.ExtraChatChannels.Contains(message.ExtraChatChannel);
         }
-        
+
         return message.Code.Type.IsGm()
                || this.ChatCodes.TryGetValue(message.Code.Type, out var sources) && (message.Code.Source is 0 or (ChatSource) 1 || sources.HasFlag(message.Code.Source));
     }
@@ -257,7 +268,7 @@ internal class Tab {
             PopOut = this.PopOut,
             IndependentOpacity = this.IndependentOpacity,
             Opacity = this.Opacity,
-            ButtonColor =  this.ButtonColor,
+            ButtonColor = this.ButtonColor,
         };
     }
 }

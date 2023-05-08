@@ -62,5 +62,11 @@ internal sealed class Miscellaneous : ISettingsTab {
         ImGui.Checkbox(Language.Options_SortAutoTranslate_Name, ref this.Mutable.SortAutoTranslate);
         ImGuiUtil.HelpText(Language.Options_SortAutoTranslate_Description);
         ImGui.Spacing();
+        
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.EnableTellTabs, "Open conversation tabs on /tell");
+        ImGui.Spacing();
+
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.KeyLayoutSubEnabled, "Enable commands keyboard layout auto sub.");
+        ImGui.Spacing();
     }
 }
