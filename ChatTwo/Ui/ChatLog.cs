@@ -529,36 +529,7 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         if (ImGui.BeginPopup(ChatChannelPicker)) {
-            foreach (var channel in Enum.GetValues<InputChannel>()) {
-                var name = this.Ui.Plugin.DataManager.GetExcelSheet<LogFilter>()!
-                    .FirstOrDefault(row => row.LogKind == (byte) channel.ToChatType())
-                    ?.Name
-                    ?.RawString ?? channel.ToString();
-
-                if (channel.IsLinkshell()) {
-                    var lsName = this.Ui.Plugin.Functions.Chat.GetLinkshellName(channel.LinkshellIndex());
-                    if (string.IsNullOrWhiteSpace(lsName)) {
-                        continue;
-                    }
-
-                    name += $": {lsName}";
-                }
-
-                if (channel.IsCrossLinkshell()) {
-                    var lsName = this.Ui.Plugin.Functions.Chat.GetCrossLinkshellName(channel.LinkshellIndex());
-                    if (string.IsNullOrWhiteSpace(lsName)) {
-                        continue;
-                    }
-
-                    name += $": {lsName}";
-                }
-
-                if (ImGui.Selectable(name)) {
-                    this.Ui.Plugin.Functions.Chat.SetChannel(channel);
-                    this._tellTarget = null;
-                }
-            }
-
+            this.DrawChannelPicker();
             ImGui.EndPopup();
         }
 
@@ -658,8 +629,18 @@ internal sealed class ChatLog : IUiComponent {
             ImGui.PushStyleColor(ImGuiCol.Text, normalColour);
 
             try {
+
+                if (this.Ui.Plugin.Config.SimplifiedInputField) {
+                    this.DrawChannelPicker();
+                    ImGui.Separator();
+                }
+
                 if (ImGui.Selectable(Language.ChatLog_HideChat)) {
                     this.UserHide();
+                }
+
+                if (ImGui.Selectable("Settings")) {
+                    this.Ui.SettingsVisible ^= true;
                 }
             } finally {
                 ImGui.PopStyleColor();
@@ -689,6 +670,38 @@ internal sealed class ChatLog : IUiComponent {
         ImGui.End();
 
         return true;
+    }
+
+    private void DrawChannelPicker() {
+        foreach (var channel in Enum.GetValues<InputChannel>()) {
+            var name = this.Ui.Plugin.DataManager.GetExcelSheet<LogFilter>()!
+                .FirstOrDefault(row => row.LogKind == (byte) channel.ToChatType())
+                ?.Name
+                ?.RawString ?? channel.ToString();
+
+            if (channel.IsLinkshell()) {
+                var lsName = this.Ui.Plugin.Functions.Chat.GetLinkshellName(channel.LinkshellIndex());
+                if (string.IsNullOrWhiteSpace(lsName)) {
+                    continue;
+                }
+
+                name += $": {lsName}";
+            }
+
+            if (channel.IsCrossLinkshell()) {
+                var lsName = this.Ui.Plugin.Functions.Chat.GetCrossLinkshellName(channel.LinkshellIndex());
+                if (string.IsNullOrWhiteSpace(lsName)) {
+                    continue;
+                }
+
+                name += $": {lsName}";
+            }
+
+            if (ImGui.Selectable(name)) {
+                this.Ui.Plugin.Functions.Chat.SetChannel(channel);
+                this._tellTarget = null;
+            }
+        }
     }
 
     private void SendChatBox(Tab? activeTab) {
@@ -881,7 +894,11 @@ internal sealed class ChatLog : IUiComponent {
                     if (message.Content.Count == 0) {
                         this.DrawChunks(new[] { new TextChunk(ChunkSource.Content, null, " ") }, true, handler, lineWidth);
                     } else {
-                        this.DrawChunks(message.Content, true, handler, lineWidth);
+                        var content = this.Ui.Plugin.Config.RPFormattingEnabled && this.Ui.Plugin.RpMarkup.EnabledForMessage(message) 
+                            ? this.Ui.Plugin.RpMarkup.ApplyFormatting(message.Content)
+                            : message.Content;
+                        
+                        this.DrawChunks(content, true, handler, lineWidth);
                     }
 
                     var afterDraw = ImGui.GetCursorScreenPos();

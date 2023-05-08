@@ -122,8 +122,7 @@ internal sealed class PayloadHandler {
 
         if (ImGui.Selectable($"Copy all")) {
             if (chunk.Message is { } msg) {
-                var text = msg.Sender
-                    .Concat(msg.Content)
+                var text = msg.Content
                     .Where(chunk => chunk is TextChunk)
                     .Cast<TextChunk>()
                     .Select(text => text.Content)
