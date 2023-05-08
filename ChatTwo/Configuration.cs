@@ -30,9 +30,10 @@ internal class Configuration : IPluginConfiguration {
     public KeybindMode KeybindMode = KeybindMode.Strict;
     public LanguageOverride LanguageOverride = LanguageOverride.None;
     public bool CanMove = true;
-    public bool Force24H = false;
-    public bool HideCogButton = false;
+    public bool Force24H = true;
+    public bool HideCogButton = true;
     public bool HideChannelsButton = false;
+    public bool TellTabs = true;
     public bool CanResize = true;
     public bool ShowTitleBar;
     public bool ShowPopOutTitleBar = true;
@@ -44,11 +45,11 @@ internal class Configuration : IPluginConfiguration {
     public bool CollapseDuplicateMessages;
 
     public bool FontsEnabled = true;
-    public ExtraGlyphRanges ExtraGlyphRanges = 0;
+    public ExtraGlyphRanges ExtraGlyphRanges = ExtraGlyphRanges.Cyrillic;
     public float FontSize = 17f;
     public float JapaneseFontSize = 17f;
     public float SymbolsFontSize = 17f;
-    public string GlobalFont = Fonts.GlobalFonts[0].Name;
+    public string GlobalFont = Fonts.GlobalFonts[3].Name;
     public string JapaneseFont = Fonts.JapaneseFonts[0].Item1;
 
     public float WindowAlpha = 100f;
@@ -74,6 +75,7 @@ internal class Configuration : IPluginConfiguration {
         this.CanMove = other.CanMove;
         this.Force24H = other.Force24H;
         this.HideChannelsButton = other.HideChannelsButton;
+        this.TellTabs = other.TellTabs;
         this.HideCogButton = other.HideCogButton;
         this.CanResize = other.CanResize;
         this.ShowTitleBar = other.ShowTitleBar;

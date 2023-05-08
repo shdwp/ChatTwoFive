@@ -101,7 +101,7 @@ internal sealed class ChatLog : IUiComponent {
         }
 
         var (info, reason, target) = (args.ChannelSwitchInfo, args.TellReason, args.TellTarget);
-
+        
         if (info.Channel != null) {
             var prevTemp = this._tempChannel;
 
@@ -1345,7 +1345,8 @@ internal sealed class ChatLog : IUiComponent {
 
         if (this.Activate) {
             this.Activate = false;
-            data->CursorPos = this._activatePos > -1 ? this._activatePos : this.Chat.Length;
+            var utf8Bytes = Encoding.UTF8.GetByteCount(this.Chat);
+            data->CursorPos = this._activatePos > -1 ? this._activatePos : utf8Bytes;
             data->SelectionStart = data->SelectionEnd = data->CursorPos;
             this._activatePos = -1;
         }
