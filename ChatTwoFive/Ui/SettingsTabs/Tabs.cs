@@ -86,6 +86,7 @@ internal sealed class Tabs : ISettingsTab {
                 ImGui.ColorEdit3("Color", ref tab.ButtonColor, ImGuiColorEditFlags.NoInputs);
                 
                 ImGui.Checkbox(Language.Options_Tabs_ShowTimestamps, ref tab.DisplayTimestamp);
+                ImGui.Checkbox("RP Formatting enabled for the tab", ref tab.RPFormatEnabled);
                 ImGui.Checkbox(Language.Options_Tabs_PopOut, ref tab.PopOut);
                 if (tab.PopOut) {
                     ImGui.Checkbox(Language.Options_Tabs_IndependentOpacity, ref tab.IndependentOpacity);

@@ -30,6 +30,17 @@ internal sealed class RP : ISettingsTab {
         ImGui.TreePop();
         
         ImGui.Dummy(new Vector2(0, 25));
+        
+        ImGuiUtil.HelpText("Currently formatting is enabled for the following tabs:");
+        ImGui.TreePush();
+        foreach (var tab in this.Mutable.Tabs) {
+            if (tab.RPFormatEnabled) {
+                ImGui.Text(tab.Name);
+            }
+        }
+        ImGui.TreePop();
+        
+        ImGui.Dummy(new Vector2(0, 25));
 
         DrawRPBlockSettings(
             "Phrase",

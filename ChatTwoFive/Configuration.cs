@@ -24,6 +24,7 @@ internal class Configuration : IPluginConfiguration {
     public bool PrettierTimestamps = true;
     public bool MoreCompactPretty = true;
     public bool HideSameTimestamps = true;
+    public bool HideTimestampsSmart = true;
     public bool TimestampsForce24Format = true;
     public bool ShowNoviceNetwork;
     public bool SidebarTabView;
@@ -45,9 +46,9 @@ internal class Configuration : IPluginConfiguration {
 
     public bool FontsEnabled = true;
     public ExtraGlyphRanges ExtraGlyphRanges = ExtraGlyphRanges.Cyrillic;
-    public float FontSize = 17f;
-    public float JapaneseFontSize = 17f;
-    public float SymbolsFontSize = 17f;
+    public float FontSize = 16f;
+    public float JapaneseFontSize = 16f;
+    public float SymbolsFontSize = 21f;
     public string GlobalFont = Fonts.GlobalFonts[3].Name;
     public string JapaneseFont = Fonts.JapaneseFonts[0].Item1;
 
@@ -78,6 +79,7 @@ internal class Configuration : IPluginConfiguration {
         this.PrettierTimestamps = other.PrettierTimestamps;
         this.MoreCompactPretty = other.MoreCompactPretty;
         this.HideSameTimestamps = other.HideSameTimestamps;
+        this.HideTimestampsSmart = other.HideTimestampsSmart;
         this.ShowNoviceNetwork = other.ShowNoviceNetwork;
         this.SidebarTabView = other.SidebarTabView;
         this.CommandHelpSide = other.CommandHelpSide;
@@ -222,6 +224,7 @@ internal class Tab {
     public PlayerPayload? PartnerPayload;
     public bool IsPartnerSpecific => this.PartnerPayload != null;
     public bool PopOut;
+    public bool RPFormatEnabled = true;
     public bool IsProtected => !IsPartnerSpecific;
     public bool IndependentOpacity;
     public float Opacity = 100f;
@@ -299,6 +302,7 @@ internal class Tab {
             IndependentOpacity = this.IndependentOpacity,
             Opacity = this.Opacity,
             ButtonColor = this.ButtonColor,
+            RPFormatEnabled = this.RPFormatEnabled,
         };
     }
 }
