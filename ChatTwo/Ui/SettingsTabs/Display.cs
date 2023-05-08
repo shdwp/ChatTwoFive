@@ -66,15 +66,15 @@ internal sealed class Display : ISettingsTab {
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.Force24H, "Force 24H");
-        
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.HideCogButton, "Hide Cog button");
-        
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.HideChannelsButton, "Hide channels button");
-        
+        ImGui.Spacing();
+
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.TellTabs, "Open conversation tabs on /tell");
         ImGui.Spacing();
 
         ImGuiUtil.OptionCheckbox(ref this.Mutable.CollapseDuplicateMessages, Language.Options_CollapseDuplicateMessages_Name, Language.Options_CollapseDuplicateMessages_Description);

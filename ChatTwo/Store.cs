@@ -289,13 +289,15 @@ internal class Store : IDisposable {
         }
     }
 
-    internal void AddMessage(Message message, Tab? currentTab) {
-        if (this.Plugin.Config.DatabaseBattleMessages || !message.Code.IsBattle()) {
-            this.Messages.Insert(message);
+    internal void AddMessage(Message message, Tab? currentTab, bool insert = true) {
+        if (insert) {
+            if (this.Plugin.Config.DatabaseBattleMessages || !message.Code.IsBattle()) {
+                this.Messages.Insert(message);
+            }
         }
 
         var currentMatches = currentTab?.Matches(message) ?? false;
-        
+
         var partnerSpecificMessage = false;
         var foundPartnerTab = false;
         PlayerPayload? partnerPayload = null;
@@ -304,7 +306,10 @@ internal class Store : IDisposable {
             partnerPayload = name?.Link as PlayerPayload;
             partnerSpecificMessage = true;
         }
-        
+
+        if (!this.Plugin.Config.TellTabs) {
+            partnerSpecificMessage = false;
+        }
 
         if (partnerSpecificMessage) {
             foreach (var tab in this.Plugin.Config.Tabs) {
@@ -315,8 +320,8 @@ internal class Store : IDisposable {
                 }
             }
         }
-        
-        if (!partnerSpecificMessage || !foundPartnerTab) {
+
+        if (!partnerSpecificMessage || (!foundPartnerTab && message.Code.Type != ChatType.TellOutgoing)) {
             foreach (var tab in this.Plugin.Config.Tabs) {
                 var unread = !(tab.UnreadMode == UnreadMode.Unseen && currentTab != tab && currentMatches);
 
@@ -330,7 +335,7 @@ internal class Store : IDisposable {
             }
         }
 
-        if (partnerSpecificMessage && !foundPartnerTab && message.Code.Type == ChatType.TellOutgoing) {
+        if (insert && partnerSpecificMessage && !foundPartnerTab && message.Code.Type == ChatType.TellOutgoing) {
             if (partnerPayload == null) {
                 PluginLog.Warning($"Failed to find PlayerPayload for the sender source: {message.SenderSource}!");
                 return;
@@ -342,36 +347,15 @@ internal class Store : IDisposable {
 
             tab.AddMessage(message, false);
             this.Plugin.Config.Tabs.Add(tab);
-            
+
             this.Plugin.Ui.CurrentTab = tab;
         }
     }
 
     internal void FilterAllTabs(bool unread = true) {
-        foreach (var tab in this.Plugin.Config.Tabs) {
-            this.FilterTab(tab, unread);
-        }
-    }
-
-    internal void FilterTab(Tab tab, bool unread) {
-        var sortCodes = new List<SortCode>();
-        foreach (var (type, sources) in tab.ChatCodes) {
-            sortCodes.Add(new SortCode(type, 0));
-            sortCodes.Add(new SortCode(type, (ChatSource) 1));
-
-            if (type.HasSource()) {
-                foreach (var source in Enum.GetValues<ChatSource>()) {
-                    if (sources.HasFlag(source)) {
-                        sortCodes.Add(new SortCode(type, source));
-                    }
-                }
-            }
-        }
-
         var query = this.Messages
             .Query()
             .OrderByDescending(msg => msg.Date)
-            .Where(msg => sortCodes.Contains(msg.SortCode) || msg.ExtraChatChannel != Guid.Empty)
             .Where(msg => msg.Receiver == this.CurrentContentId);
         if (!this.Plugin.Config.FilterIncludePreviousSessions) {
             query = query.Where(msg => msg.Date >= this.Plugin.GameStarted);
@@ -381,11 +365,9 @@ internal class Store : IDisposable {
             .Limit(MessagesLimit)
             .ToEnumerable()
             .Reverse();
+
         foreach (var message in messages) {
-            // redundant matches check for extrachat
-            if (tab.Matches(message)) {
-                tab.AddMessage(message, unread);
-            }
+            AddMessage(message, this.Plugin.Ui.CurrentTab, false);
         }
     }
 
