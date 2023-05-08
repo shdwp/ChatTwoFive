@@ -786,8 +786,9 @@ internal sealed class ChatLog : IUiComponent {
                     reset = true;
                 }
 
+                var renderCount = 0;
                 var lastPos = ImGui.GetCursorPosY();
-                var lastTimestamp = string.Empty;
+                var lastTimestamp = new DateTime();
                 int? lastMessageHash = null;
                 var sameCount = 0;
                 for (var i = 0; i < tab.Messages.Count; i++) {
@@ -866,16 +867,26 @@ internal sealed class ChatLog : IUiComponent {
                     if (tab.DisplayTimestamp) {
                         var format = this.Ui.Plugin.Config.TimestampsForce24Format ? "HH:mm" : "t";
                         var timestamp = message.Date.ToLocalTime().ToString(format);
-                        if (table) {
-                            if (!this.Ui.Plugin.Config.HideSameTimestamps || timestamp != lastTimestamp) {
+
+                        var showTimestamp = true;
+                        if (this.Ui.Plugin.Config.HideTimestampsSmart) {
+                            var timeSpan = message.Date - lastTimestamp;
+                            showTimestamp = timeSpan.TotalSeconds > 120.0;
+                        } else if (this.Ui.Plugin.Config.HideSameTimestamps) {
+                            showTimestamp = lastTimestamp.ToLocalTime().ToString(format) != timestamp;
+                        }
+
+                        if (showTimestamp) {
+                            if (table) {
                                 ImGui.TextUnformatted(timestamp);
-                                lastTimestamp = timestamp;
+                            } else {
+                                this.DrawChunk(new TextChunk(ChunkSource.None, null, $"{timestamp} ") {
+                                    Foreground = 0x999999FF,
+                                });
+                                ImGui.SameLine();
                             }
-                        } else {
-                            this.DrawChunk(new TextChunk(ChunkSource.None, null, $"[{timestamp}]") {
-                                Foreground = 0xFFFFFFFF,
-                            });
-                            ImGui.SameLine();
+
+                            lastTimestamp = message.Date;
                         }
                     }
 
@@ -894,11 +905,15 @@ internal sealed class ChatLog : IUiComponent {
                     if (message.Content.Count == 0) {
                         this.DrawChunks(new[] { new TextChunk(ChunkSource.Content, null, " ") }, true, handler, lineWidth);
                     } else {
-                        var content = this.Ui.Plugin.Config.RPFormattingEnabled && this.Ui.Plugin.RpMarkup.EnabledForMessage(message) 
+                        var rpFormattingEnabled = this.Ui.Plugin.Config.RPFormattingEnabled;
+                        var rpFormattingEnabledForTab = tab.RPFormatEnabled; 
+                        
+                        var content = rpFormattingEnabled && rpFormattingEnabledForTab && this.Ui.Plugin.RpMarkup.EnabledForMessage(message)
                             ? this.Ui.Plugin.RpMarkup.ApplyFormatting(message.Content)
                             : message.Content;
-                        
+
                         this.DrawChunks(content, true, handler, lineWidth);
+                        renderCount++;
                     }
 
                     var afterDraw = ImGui.GetCursorScreenPos();

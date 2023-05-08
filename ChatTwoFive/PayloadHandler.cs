@@ -121,29 +121,27 @@ internal sealed class PayloadHandler {
             ImGui.Separator();
         }
 
-        if (ImGui.Selectable($"Copy all")) {
-            if (chunk.Message is { } msg) {
-                var text = msg.Content
-                    .Where(chunk => chunk is TextChunk)
-                    .Cast<TextChunk>()
-                    .Select(text => text.Content)
-                    .Aggregate(string.Concat);
-                
-                ImGui.SetClipboardText(text);
-            }
-        }
-
-        if (!ImGui.BeginMenu(this.Ui.Plugin.Name)) {
-            return;
-        }
-
-        ImGui.Checkbox(Language.Context_ScreenshotMode, ref this.Ui.ScreenshotMode);
-
-        if (ImGui.Selectable(Language.Context_HideChat)) {
-            this.Log.UserHide();
-        }
-
         if (chunk.Message is { } message) {
+            var col = ImGui.GetStyle().Colors[(int) ImGuiCol.TextDisabled];
+            ImGui.PushStyleColor(ImGuiCol.Text, col);
+            try {
+                ImGui.TextUnformatted(message.Code.Type.Name());
+            } finally {
+                ImGui.PopStyleColor();
+            }
+            
+            if (ImGui.Selectable($"Copy all")) {
+                if (chunk.Message is { } msg) {
+                    var text = msg.Content
+                        .Where(chunk => chunk is TextChunk)
+                        .Cast<TextChunk>()
+                        .Select(text => text.Content)
+                        .Aggregate(string.Concat);
+
+                    ImGui.SetClipboardText(text);
+                }
+            }
+
             if (ImGui.BeginMenu(Language.Context_Copy)) {
                 var text = message.Sender
                     .Concat(message.Content)
@@ -160,17 +158,9 @@ internal sealed class PayloadHandler {
                 );
                 ImGui.EndMenu();
             }
-
-            var col = ImGui.GetStyle().Colors[(int) ImGuiCol.TextDisabled];
-            ImGui.PushStyleColor(ImGuiCol.Text, col);
-            try {
-                ImGui.TextUnformatted(message.Code.Type.Name());
-            } finally {
-                ImGui.PopStyleColor();
-            }
         }
 
-        ImGui.EndMenu();
+        ImGui.Checkbox(Language.Context_ScreenshotMode, ref this.Ui.ScreenshotMode);
     }
 
     internal void Click(Chunk chunk, Payload? payload, ImGuiMouseButton button) {

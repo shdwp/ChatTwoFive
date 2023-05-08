@@ -78,6 +78,7 @@ internal static class TabsUtil {
     internal static Tab TellPrototype => new() {
         Channel = InputChannel.Tell,
         DisplayTimestamp = false,
+        RPFormatEnabled = true,
         ButtonColor = new Vector3(0.435f, 0.294f, 0.373f),
         ChatCodes = new Dictionary<ChatType, ChatSource> {
             // Special

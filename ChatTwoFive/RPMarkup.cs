@@ -70,13 +70,13 @@ public sealed class RPMarkup {
 
         var resultDeref = result;
 
-        void CommitBuffer(State state) {
+        void CommitBuffer(State bufferState) {
             if (buffer.Length == 0) {
                 return;
             }
 
             var newChunk = new TextChunk(ChunkSource.Content, parsedChunk.Link, buffer.ToString());
-            ApplyStateToChunk(newChunk, parsedChunk, state);
+            ApplyStateToChunk(newChunk, parsedChunk, bufferState);
             resultDeref.Add(newChunk);
 
             buffer.Clear();
@@ -170,6 +170,7 @@ public sealed class RPMarkup {
         }
 
         chunk.FallbackColour = parentChunk.FallbackColour;
+        chunk.Message = parentChunk.Message;
     }
 
     private void CalculateWhitespace(string content, out int preWhitespace, out int postWhitespace) {
