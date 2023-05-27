@@ -83,18 +83,22 @@ public sealed class RPMarkup {
         }
 
         char? pch = null;
+        var previousState = state;
         for (var i = 0; i < text.Length; i++) {
             var ch = text[i];
-            char? nch = i + 1 < text.Length - 1 ? text[i + 1] : null;
+            char? nch = i < text.Length - 1 ? text[i + 1] : null;
 
-            var previousState = state;
+            previousState = state;
+            bool ignore = false;
 
             if (ch == '*') {
                 state.Emote ^= true;
+                ignore = true;
             }
 
             if (ch == '(' && nch == '(') {
                 state.OOC = true;
+                ignore = true;
             }
 
             if (ch == '(' && pch == '(') {
@@ -103,6 +107,7 @@ public sealed class RPMarkup {
 
             if (ch == ')' && nch == ')') {
                 state.OOC = false;
+                ignore = true;
             }
 
             if (ch == ')' && pch == ')') {
@@ -112,14 +117,21 @@ public sealed class RPMarkup {
             if (state != previousState) {
                 CommitBuffer(previousState);
                 state.Phrase = !state.IsInBlock();
-            } else {
+            }
+
+            if (!ignore) {
                 buffer.Append(ch);
             }
 
             pch = ch;
         }
 
-        CommitBuffer(state);
+        if (previousState.IsInBlock()) {
+            previousState = new State();
+            previousState.Phrase = true;
+        }
+        
+        CommitBuffer(previousState);
     }
 
     private void ApplyStateToChunk(TextChunk chunk, TextChunk parentChunk, State state) {
@@ -127,6 +139,10 @@ public sealed class RPMarkup {
         CalculateWhitespace(content, out var preWhitespace, out var postWhitespace);
 
         if (postWhitespace + preWhitespace == content.Length) {
+            return;
+        }
+
+        if (this._plugin == null) {
             return;
         }
 

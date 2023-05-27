@@ -106,7 +106,7 @@ public sealed class Plugin : IDalamudPlugin {
             var settings = new RPBlockSettings();
             settings.Wrap = true;
             settings.Italic = true;
-            settings.Color = ColourUtil.RgbaToVector3(0xF19212FF);
+            settings.Color = ColourUtil.RgbaToVector3(0xBAFFF0FF);
             this.Config.RPEmoteSettings = settings;
         }
         

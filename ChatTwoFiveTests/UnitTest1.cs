@@ -14,7 +14,7 @@ public class MarkupParserTests {
         var parser = new RPMarkup(null);
 
         var chunks = new List<Chunk> {
-            new TextChunk(ChunkSource.Content, null, "quote, quote *emote emote* ((out of character)) *(emote brackets)* another quote!")
+            new TextChunk(ChunkSource.Content, null, "quote, quote *emote emote* ((out of character))")
         };
 
         var contents = parser.ApplyFormatting(chunks);

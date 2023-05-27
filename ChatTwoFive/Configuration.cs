@@ -26,6 +26,7 @@ internal class Configuration : IPluginConfiguration {
     public bool HideSameTimestamps = true;
     public bool HideTimestampsSmart = true;
     public bool TimestampsForce24Format = true;
+    public bool HideSenderWorld = false;
     public bool ShowNoviceNetwork;
     public bool SidebarTabView;
     public CommandHelpSide CommandHelpSide = CommandHelpSide.None;
@@ -74,6 +75,7 @@ internal class Configuration : IPluginConfiguration {
         this.HideChat = other.HideChat;
         this.HideDuringCutscenes = other.HideDuringCutscenes;
         this.HideWhenNotLoggedIn = other.HideWhenNotLoggedIn;
+        this.HideSenderWorld = other.HideSenderWorld;
         this.HideWhenUiHidden = other.HideWhenUiHidden;
         this.NativeItemTooltips = other.NativeItemTooltips;
         this.PrettierTimestamps = other.PrettierTimestamps;

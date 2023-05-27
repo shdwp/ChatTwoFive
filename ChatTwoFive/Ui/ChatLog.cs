@@ -518,8 +518,6 @@ internal sealed class ChatLog : IUiComponent {
             if (ImGuiUtil.IconButton(FontAwesomeIcon.Comment) && activeTab is not { Channel: { } }) {
                 ImGui.OpenPopup(ChatChannelPicker);
             }
-        } else {
-            ImGui.NewLine();
         }
 
         if (activeTab is { Channel: { } } && ImGui.IsItemHovered()) {
@@ -533,7 +531,10 @@ internal sealed class ChatLog : IUiComponent {
             ImGui.EndPopup();
         }
 
-        ImGui.SameLine();
+        if (!this.Ui.Plugin.Config.SimplifiedInputField) {
+            ImGui.SameLine();
+        }
+
         var afterIcon = ImGui.GetCursorPos();
 
         var buttonWidth = this.Ui.Plugin.Config.SimplifiedInputField ? 0 : (afterIcon.X - beforeIcon.X);
@@ -581,7 +582,6 @@ internal sealed class ChatLog : IUiComponent {
                                                | ImGuiInputTextFlags.CallbackCharFilter
                                                | ImGuiInputTextFlags.CallbackCompletion
                                                | ImGuiInputTextFlags.CallbackHistory;
-        // ImGui.InputText("##chat2-input", ref this.Chat, 500, inputFlags, this.Callback);
         ImGui.InputTextWithHint("##chat2-input", channelHint ?? "", ref this.Chat, 500, inputFlags, this.Callback);
 
         if (ImGui.IsItemDeactivated()) {
@@ -872,6 +872,7 @@ internal sealed class ChatLog : IUiComponent {
                         if (this.Ui.Plugin.Config.HideTimestampsSmart) {
                             var timeSpan = message.Date - lastTimestamp;
                             showTimestamp = timeSpan.TotalSeconds > 120.0;
+                            lastTimestamp = message.Date;
                         } else if (this.Ui.Plugin.Config.HideSameTimestamps) {
                             showTimestamp = lastTimestamp.ToLocalTime().ToString(format) != timestamp;
                         }
@@ -898,7 +899,7 @@ internal sealed class ChatLog : IUiComponent {
 
                     var beforeDraw = ImGui.GetCursorScreenPos();
                     if (message.Sender.Count > 0) {
-                        this.DrawChunks(message.Sender, true, handler, lineWidth);
+                        this.DrawChunks(message.Sender, true, handler, lineWidth, this.Ui.Plugin.Config.HideSenderWorld);
                         ImGui.SameLine();
                     }
 
@@ -906,8 +907,8 @@ internal sealed class ChatLog : IUiComponent {
                         this.DrawChunks(new[] { new TextChunk(ChunkSource.Content, null, " ") }, true, handler, lineWidth);
                     } else {
                         var rpFormattingEnabled = this.Ui.Plugin.Config.RPFormattingEnabled;
-                        var rpFormattingEnabledForTab = tab.RPFormatEnabled; 
-                        
+                        var rpFormattingEnabledForTab = tab.RPFormatEnabled;
+
                         var content = rpFormattingEnabled && rpFormattingEnabledForTab && this.Ui.Plugin.RpMarkup.EnabledForMessage(message)
                             ? this.Ui.Plugin.RpMarkup.ApplyFormatting(message.Content)
                             : message.Content;
@@ -1466,11 +1467,16 @@ internal sealed class ChatLog : IUiComponent {
         return 0;
     }
 
-    internal void DrawChunks(IReadOnlyList<Chunk> chunks, bool wrap = true, PayloadHandler? handler = null, float lineWidth = 0f) {
+    internal void DrawChunks(IReadOnlyList<Chunk> chunks, bool wrap = true, PayloadHandler? handler = null, float lineWidth = 0f, bool skipCrossWorld = false) {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         try {
             for (var i = 0; i < chunks.Count; i++) {
                 if (chunks[i] is TextChunk text && string.IsNullOrEmpty(text.Content)) {
+                    continue;
+                }
+
+                if (skipCrossWorld && chunks[i] is IconChunk iconChunk && iconChunk.Icon == BitmapFontIcon.CrossWorld) {
+                    i += 1;
                     continue;
                 }
 

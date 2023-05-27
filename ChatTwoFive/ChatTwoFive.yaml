@@ -2,7 +2,19 @@ name: Chat 2.5
 author: ascclemens, shdwp
 punchline: Fork of the Chat2 adding features and fixes.
 description: |-
-  Replacement of the standard chat. Fork of Chat 2.
+  Replacement of the standard chat. Fork of Chat 2. 
+  Most of existing features, plus:
+  - Person-specific tabs for /tells
+  - RP markup formatting
+  - Chat tab colors
+  - QoL features for non-latin keyboard layouts
+  - Hotkeys to switch tabs (Alt+Arrows)
+  - Overhauled UI
+  - Better unicode support
+  - More bugs!
+  
+  
+icon_url: https://raw.githubusercontent.com/shdwp/DalamudRepo/master/plugins/ChatTwoFive/thumb.png
 repo_url: https://github.com/shdwp/ChatTwoFive
 accepts_feedback: false
 feedback_message: Sorry, not at this time.

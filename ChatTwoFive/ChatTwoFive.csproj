@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>2.0.1.0</Version>
+        <Version>2.0.2.0</Version>
         <TargetFramework>net7.0-windows</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -25,6 +25,22 @@
     <PropertyGroup Condition="'$(IsCI)' == 'true'">
         <DalamudLibPath>$(HOME)/dalamud</DalamudLibPath>
     </PropertyGroup>
+
+    <Target Name="PackagePlugin" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+        <DalamudPackager
+                ProjectDir="$(ProjectDir)"
+                OutputPath="$(OutputPath)"
+                AssemblyName="$(AssemblyName)"
+                MakeZip="true"/>
+        
+        <ItemGroup>
+            <RepoReleaseFiles Include="$(TargetDir)\$(AssemblyName)\**\*.*" />
+        </ItemGroup>
+        
+        <Copy
+            SourceFiles="@(RepoReleaseFiles)"
+            DestinationFolder="D:\Dalamud\PersonalRepo\plugins\$(AssemblyName)"/>
+    </Target>
 
     <ItemGroup>
         <Reference Include="Dalamud">
@@ -54,23 +70,23 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.10" />
-        <PackageReference Include="LiteDB" Version="5.0.15" />
-        <PackageReference Include="Pidgin" Version="3.2.1" />
-        <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-        <PackageReference Include="XivCommon" Version="7.0.0-alpha.1" />
+        <PackageReference Include="DalamudPackager" Version="2.1.11"/>
+        <PackageReference Include="LiteDB" Version="5.0.15"/>
+        <PackageReference Include="Pidgin" Version="3.2.1"/>
+        <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0"/>
+        <PackageReference Include="XivCommon" Version="7.0.0-alpha.1"/>
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="fonts\NotoSans-Italic.ttf" />
-        <EmbeddedResource Include="fonts\NotoSans-Regular.ttf" />
-        <EmbeddedResource Include="fonts\NotoSansJP-Regular.otf" />
-        <EmbeddedResource Include="fonts\NotoSerif-Italic.ttf" />
-        <EmbeddedResource Include="fonts\NotoSerif-Regular.ttf" />
-        <EmbeddedResource Include="fonts\OpenSans-Italic.ttf" />
-        <EmbeddedResource Include="fonts\OpenSans-Regular.ttf" />
-        <EmbeddedResource Include="fonts\Roboto-Italic.ttf" />
-        <EmbeddedResource Include="fonts\Roboto-Regular.ttf" />
+        <EmbeddedResource Include="fonts\NotoSans-Italic.ttf"/>
+        <EmbeddedResource Include="fonts\NotoSans-Regular.ttf"/>
+        <EmbeddedResource Include="fonts\NotoSansJP-Regular.otf"/>
+        <EmbeddedResource Include="fonts\NotoSerif-Italic.ttf"/>
+        <EmbeddedResource Include="fonts\NotoSerif-Regular.ttf"/>
+        <EmbeddedResource Include="fonts\OpenSans-Italic.ttf"/>
+        <EmbeddedResource Include="fonts\OpenSans-Regular.ttf"/>
+        <EmbeddedResource Include="fonts\Roboto-Italic.ttf"/>
+        <EmbeddedResource Include="fonts\Roboto-Regular.ttf"/>
     </ItemGroup>
 
     <ItemGroup>

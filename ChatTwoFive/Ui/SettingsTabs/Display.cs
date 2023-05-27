@@ -81,6 +81,9 @@ internal sealed class Display : ISettingsTab {
         ImGuiUtil.OptionCheckbox(ref this.Mutable.CollapseDuplicateMessages, Language.Options_CollapseDuplicateMessages_Name, Language.Options_CollapseDuplicateMessages_Description);
         ImGui.Spacing();
 
+        ImGuiUtil.OptionCheckbox(ref this.Mutable.HideSenderWorld, "Hide Sender World");
+        ImGui.Spacing();
+
         ImGuiUtil.DragFloatVertical(Language.Options_WindowOpacity_Name, ref this.Mutable.WindowAlpha, .25f, 0f, 100f, $"{this.Mutable.WindowAlpha:N2}%%", ImGuiSliderFlags.AlwaysClamp);
         ImGui.Spacing();
 
