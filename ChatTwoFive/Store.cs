@@ -4,12 +4,11 @@ using System.Numerics;
 using ChatTwoFive.Code;
 using ChatTwoFive.Resources;
 using ChatTwoFive.Util;
-using Dalamud.Configuration;
-using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Logging;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using LiteDB;
 using Lumina.Excel.GeneratedSheets;
@@ -88,7 +87,7 @@ internal class Store : IDisposable {
                             ["Type"] = new("Achievement"),
                             ["Id"] = new(achievement.Id),
                         });
-                    case Util.PartyFinderPayload partyFinder:
+                    case PartyFinderPayload partyFinder:
                         return new BsonDocument(new Dictionary<string, BsonValue> {
                             ["Type"] = new("PartyFinder"),
                             ["Id"] = new(partyFinder.Id),
@@ -105,7 +104,7 @@ internal class Store : IDisposable {
                 if (bson.IsDocument) {
                     return bson["Type"].AsString switch {
                         "Achievement" => new AchievementPayload((uint) bson["Id"].AsInt64),
-                        "PartyFinder" => new Util.PartyFinderPayload((uint) bson["Id"].AsInt64),
+                        "PartyFinder" => new PartyFinderPayload((uint) bson["Id"].AsInt64),
                         _ => null,
                     };
                 }
@@ -180,18 +179,18 @@ internal class Store : IDisposable {
         this.Database = this.Connect();
     }
 
-    private void Logout(object? sender, EventArgs eventArgs) {
+    private void Logout() {
         this.LastContentId = 0;
     }
 
-    private void UpdateReceiver(Framework framework) {
+    private void UpdateReceiver(IFramework framework) {
         var contentId = this.Plugin.ClientState.LocalContentId;
         if (contentId != 0) {
             this.LastContentId = contentId;
         }
     }
 
-    private void GetMessageInfo(Framework framework) {
+    private void GetMessageInfo(IFramework framework) {
         if (this.CheckpointTimer.Elapsed > TimeSpan.FromMinutes(5)) {
             this.CheckpointTimer.Restart();
             new Thread(() => this.Database.Checkpoint()).Start();
@@ -213,7 +212,7 @@ internal class Store : IDisposable {
 
     private void MigrateDraw() {
         ImGui.SetNextWindowSizeConstraints(new Vector2(450, 0), new Vector2(450, float.MaxValue));
-        if (!ImGui.Begin($"{this.Plugin.Name}##migration-window", ImGuiWindowFlags.AlwaysAutoResize)) {
+        if (!ImGui.Begin($"{Plugin.Name}##migration-window", ImGuiWindowFlags.AlwaysAutoResize)) {
             ImGui.End();
             return;
         }

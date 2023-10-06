@@ -3,7 +3,7 @@ using System.Numerics;
 using ChatTwoFive.Resources;
 using ChatTwoFive.Ui.SettingsTabs;
 using ChatTwoFive.Util;
-using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility;
 using ImGuiNET;
 
@@ -63,7 +63,7 @@ internal sealed class Settings : IUiComponent {
 
         ImGui.SetNextWindowSize(new Vector2(475, 600) * ImGuiHelpers.GlobalScale, ImGuiCond.FirstUseEver);
 
-        var name = string.Format(Language.Settings_Title, this.Ui.Plugin.Name);
+        var name = string.Format(Language.Settings_Title, Plugin.Name);
         if (!ImGui.Begin($"{name}###chat2-settings", ref this.Ui.SettingsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
             ImGui.End();
             return;
@@ -119,7 +119,7 @@ internal sealed class Settings : IUiComponent {
             this.Ui.SettingsVisible = false;
         }
 
-        var buttonLabel = string.Format(Language.Settings_Kofi, this.Ui.Plugin.Name);
+        var buttonLabel = string.Format(Language.Settings_Kofi, Plugin.Name);
 
         ImGui.PushStyleColor(ImGuiCol.Button, ColourUtil.RgbaToAbgr(0xFF5E5BFF));
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, ColourUtil.RgbaToAbgr(0xFF7775FF));
@@ -131,7 +131,7 @@ internal sealed class Settings : IUiComponent {
             ImGui.SameLine(ImGui.GetContentRegionAvail().X - buttonWidth);
 
             if (ImGui.Button(buttonLabel)) {
-                Process.Start(new ProcessStartInfo("https://ko-fi.com/ascclemens") {
+                Process.Start(new ProcessStartInfo("https://ko-fi.com/lojewalo") {
                     UseShellExecute = true,
                 });
             }
