@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.Gui;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 
 namespace ChatTwoFive.RTyping;
@@ -10,8 +9,8 @@ public sealed class RTypingAdapter {
 
     public List<string> TypingList { get; } = new();
 
-    public ClientState ClientState => this._plugin.ClientState;
-    public ChatGui ChatGui => this._plugin.ChatGui;
+    public IClientState ClientState => this._plugin.ClientState;
+    public IChatGui ChatGui => this._plugin.ChatGui;
 
     private readonly Plugin _plugin;
     private readonly Client _client;

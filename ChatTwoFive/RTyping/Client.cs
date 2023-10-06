@@ -81,17 +81,19 @@ namespace ChatTwoFive.RTyping;
             });
         }
 
-        private void Login(object? sender, EventArgs e)
+        private void Login()
         {
             this.active = true;
             this.Connect();
         }
-        private void Logout(object? sender, EventArgs e)
+        
+        private void Logout()
         {
             this.active = false;
             this._status = State.Disconnected;
             if (this.wsClient.Connected) this.wsClient.Stop();
         }
+        
         public void SendTyping(string Party)
         {
             if (!this.active || !this.wsClient.Connected) return;
@@ -133,7 +135,7 @@ namespace ChatTwoFive.RTyping;
                     this.active = false;
                     this._status = State.Error;
                     this.Dispose();
-                    this.Plugin.ChatGui.PrintChat(new XivChatEntry
+                    this.Plugin.ChatGui.Print(new XivChatEntry
                     {
                         Message = "Connection to RTyping Server denied. Plugin version does not match.",
                         Type = XivChatType.Urgent,
@@ -149,7 +151,7 @@ namespace ChatTwoFive.RTyping;
             if (this.active)
             {
                 // @TODO
-                if (true) this.Plugin.ChatGui.PrintChat(new XivChatEntry
+                if (true) this.Plugin.ChatGui.Print(new XivChatEntry
                 {
                     Message = "Lost connection to RTyping Server. Attempting to reconnect.",
                     Type = XivChatType.Urgent,
@@ -166,7 +168,7 @@ namespace ChatTwoFive.RTyping;
             this._status = State.Connected;
             Plugin.TypingList.Clear();
             // @TODO
-            if (true) this.Plugin.ChatGui.PrintChat(new XivChatEntry
+            if (true) this.Plugin.ChatGui.Print(new XivChatEntry
             {
                 Message = "Connection successful to RTyping Server.",
                 Type = XivChatType.Notice,
