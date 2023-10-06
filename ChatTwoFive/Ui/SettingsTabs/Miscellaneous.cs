@@ -66,6 +66,10 @@ internal sealed class Miscellaneous : ISettingsTab {
         ImGuiUtil.OptionCheckbox(ref this.Mutable.EnableTellTabs, "Open conversation tabs on /tell");
         ImGui.Spacing();
 
+        ImGuiUtil.HelpText($"Unscramble character pairs: ");
+        ImGui.InputText("", ref this.Mutable.UnscramblePairs, 200);
+        ImGui.Spacing();
+
         ImGuiUtil.OptionCheckbox(ref this.Mutable.KeyLayoutSubEnabled, "Enable commands keyboard layout auto sub.");
         ImGui.Spacing();
 

@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Globalization;
-using System.Numerics;
 using ChatTwoFive.Code;
 using ChatTwoFive.Ipc;
 using ChatTwoFive.Resources;
+using ChatTwoFive.RTyping;
 using ChatTwoFive.Util;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -14,7 +14,6 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
-using Dalamud.Interface.Style;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using XivCommon;
@@ -73,6 +72,7 @@ public sealed class Plugin : IDalamudPlugin {
     internal RPMarkup RpMarkup { get; }
     internal ExtraChat ExtraChat { get; }
     internal PluginUi Ui { get; }
+    internal RTypingAdapter RTyping { get; }
 
     internal int DeferredSaveFrames = -1;
 
@@ -101,7 +101,7 @@ public sealed class Plugin : IDalamudPlugin {
             settings.PreserveStyle = true;
             this.Config.RPPhraseSettings = settings;
         }
-        
+
         if (this.Config.RPEmoteSettings == null) {
             var settings = new RPBlockSettings();
             settings.Wrap = true;
@@ -109,7 +109,7 @@ public sealed class Plugin : IDalamudPlugin {
             settings.Color = ColourUtil.RgbaToVector3(0xBAFFF0FF);
             this.Config.RPEmoteSettings = settings;
         }
-        
+
         if (this.Config.RPOOCSettings == null) {
             var settings = new RPBlockSettings();
             settings.Wrap = true;
@@ -128,6 +128,7 @@ public sealed class Plugin : IDalamudPlugin {
         this.RpMarkup = new RPMarkup(this);
         this.ExtraChat = new ExtraChat(this);
         this.Ui = new PluginUi(this);
+        this.RTyping = new RTypingAdapter(this);
 
         // let all the other components register, then initialise commands
         this.Commands.Initialise();

@@ -4,6 +4,7 @@ using ChatTwoFive.Resources;
 using ChatTwoFive.Ui.SettingsTabs;
 using ChatTwoFive.Util;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using ImGuiNET;
 
 namespace ChatTwoFive.Ui;

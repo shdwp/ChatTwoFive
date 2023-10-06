@@ -14,6 +14,12 @@
         "resolved": "5.0.15",
         "contentHash": "nucyfCOGSATH553BxplxExP3BOqEwmHt0B57426EIaQjD3CC1Odb52VVCGgTxyYaD2oe3B/cJk8jDo6XiBJqPg=="
       },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "[13.0.3, )",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
       "Pidgin": {
         "type": "Direct",
         "requested": "[3.2.1, )",
@@ -30,6 +36,12 @@
           "SharpDX": "4.2.0",
           "SharpDX.DXGI": "4.2.0"
         }
+      },
+      "WatsonWebsocket": {
+        "type": "Direct",
+        "requested": "[4.0.10, )",
+        "resolved": "4.0.10",
+        "contentHash": "jVUZ7mkhExc67CPTpSrppAJ71myrHQfmRZlGTAr4ydA1mcd69cIEqSgWGiR9WUGjo/0Cv4PYmrM209sjvGpmuw=="
       },
       "XivCommon": {
         "type": "Direct",

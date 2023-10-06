@@ -12,8 +12,10 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Utility;
 using Dalamud.Logging;
 using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
@@ -576,15 +578,30 @@ internal sealed class ChatLog : IUiComponent {
             ImGui.SetKeyboardFocusHere();
         }
 
+        if (this.Ui.Plugin.RTyping.TypingList.Count > 0) {
+            var iconString = "...";
+            if (this.Chat.Length > 0) {
+                var cursor = ImGui.GetCursorPos();
+                ImGui.SetCursorPosX(inputWidth - 30);
+                ImGui.TextUnformatted(iconString);
+                ImGui.SetCursorPos(cursor);
+            }
+
+            channelHint = $"{iconString} {channelHint}";
+        }
+
         var chatCopy = this.Chat;
         ImGui.SetNextItemWidth(inputWidth);
         const ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags.CallbackAlways
                                                | ImGuiInputTextFlags.CallbackCharFilter
                                                | ImGuiInputTextFlags.CallbackCompletion
                                                | ImGuiInputTextFlags.CallbackHistory;
+
         ImGui.InputTextWithHint("##chat2-input", channelHint ?? "", ref this.Chat, 500, inputFlags, this.Callback);
 
         if (ImGui.IsItemDeactivated()) {
+            this.Ui.Plugin.RTyping.SendStoppedTyping();
+
             if (ImGui.IsKeyDown(ImGuiKey.Escape)) {
                 this.Chat = chatCopy;
             }
@@ -594,6 +611,10 @@ internal sealed class ChatLog : IUiComponent {
             if (enter) {
                 this.SendChatBox(activeTab);
             }
+        }
+
+        if (ImGui.IsItemActivated()) {
+            this.Ui.Plugin.RTyping.SendStartedTyping();
         }
 
         if (ImGui.IsItemActive()) {
@@ -913,6 +934,22 @@ internal sealed class ChatLog : IUiComponent {
                             ? this.Ui.Plugin.RpMarkup.ApplyFormatting(message.Content)
                             : message.Content;
 
+                        var pairs = this.Ui.Plugin.Config.UnscramblePairs;
+                        if (pairs.Length > 0) {
+                            foreach (var chunk in message.Content) {
+                                if (chunk is not TextChunk textChunk) {
+                                    continue;
+                                }
+
+                                var sb = new StringBuilder(textChunk.Content);
+                                for (var charsubIdx = 0; charsubIdx < pairs.Length; charsubIdx += 2) {
+                                    sb.Replace(pairs[charsubIdx], pairs[charsubIdx + 1]);
+                                }
+
+                                textChunk.Content = sb.ToString();
+                            }
+                        }
+
                         this.DrawChunks(content, true, handler, lineWidth);
                         renderCount++;
                     }
@@ -959,6 +996,16 @@ internal sealed class ChatLog : IUiComponent {
         if (currentTab != null) {
             ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(currentTab.ButtonColor, 1f));
         }
+
+        /*
+        if (this.Ui.Plugin.TypingList.Count > 0) {
+            var pos = ImGui.GetCursorPos();
+            var width = ImGui.GetWindowWidth();
+            ImGui.SetCursorPosX(width - 30);
+            ImGui.TextUnformatted($"...");
+            ImGui.SetCursorPos(pos);
+        }
+        */
 
         if (!ImGui.BeginTabBar("##chat2-tabs")) {
             return currentTabIndex;

@@ -56,6 +56,8 @@ internal class Configuration : IPluginConfiguration {
     public bool KeyLayoutSubEnabled = true;
     public List<string> KeyLayoutSubDisabledCommands = new();
 
+    public string UnscramblePairs = "";
+
     public bool RPFormattingEnabled = false;
     public List<ChatType> RPFormattingEnabledTypes = new();
     public RPBlockSettings RPPhraseSettings;
@@ -123,6 +125,7 @@ internal class Configuration : IPluginConfiguration {
         this.RPPhraseSettings = other.RPPhraseSettings.Clone();
         this.RPEmoteSettings = other.RPEmoteSettings.Clone();
         this.RPOOCSettings = other.RPOOCSettings.Clone();
+        this.UnscramblePairs = other.UnscramblePairs;
     }
 
     public void Migrate() {
